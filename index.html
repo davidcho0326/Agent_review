@@ -1140,32 +1140,94 @@ html.theme-light .theme-toggle .icon-moon { display: none; }
         </div>
       </div>
 
-      <!-- ACTUAL EXECUTION RESULT -->
-      <div style="padding: 1rem 1.25rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 10px;">
-        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.75rem;">실제 실행 결과 &mdash; "비즈니스에 도움이 되는 심리학"</div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
-          <div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem;">검색 결과</div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary);">
-              Reddit <span class="text-muted">0건</span> &bull;
-              TikTok <span class="text-good">4건</span> &bull;
-              Instagram <span class="text-good">2건</span>
-            </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">총 6건 / 53.9초</div>
-          </div>
-          <div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem;">선택된 포스트</div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary);">
-              <span class="text-cyan">TK1</span> @kyleinmind
-            </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">조회 23.3K &bull; 좋아요 420 &bull; 댓글 123</div>
-          </div>
-          <div>
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem;">AI 분석 결과</div>
-            <div style="font-size: 0.85rem; color: var(--text-secondary);">
-              <span class="text-yellow">"AI 아바타 수익 창출"</span>
-            </div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">톤: 도발 &bull; Gemini 영상 분석</div>
+      <!-- ACTUAL SEARCH CANDIDATES TABLE -->
+      <div style="padding: 1.25rem 1.5rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px;">
+        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem;">실제 검색 후보 6건 &mdash; "비즈니스에 도움이 되는 심리학" (53.9초)</div>
+
+        <table class="data-table" style="font-size: 0.82rem;">
+          <thead>
+            <tr><th>ID</th><th>플랫폼</th><th>작성자</th><th>내용 요약</th><th>조회</th><th>좋아요</th><th>댓글</th><th>선택</th></tr>
+          </thead>
+          <tbody>
+            <tr style="background: rgba(34,211,238,0.06);">
+              <td><strong class="text-cyan">TK1</strong></td>
+              <td><span class="tag tag-muted" style="font-size:0.68rem;">TikTok</span></td>
+              <td>@kyleinmind</td>
+              <td style="max-width:200px;">AI 아바타로 수익 창출하는 방법</td>
+              <td class="text-good"><strong>23.3K</strong></td>
+              <td>420</td>
+              <td>123</td>
+              <td><span class="tag tag-cyan" style="font-size:0.65rem;">&#10003; Selected</span></td>
+            </tr>
+            <tr>
+              <td>TK2</td>
+              <td><span class="tag tag-muted" style="font-size:0.68rem;">TikTok</span></td>
+              <td>@library_yeorumi</td>
+              <td style="max-width:200px;">새벽에 불안할 때 읽는 책 5권</td>
+              <td>4.5K</td>
+              <td>93</td>
+              <td>3</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>TK3</td>
+              <td><span class="tag tag-muted" style="font-size:0.68rem;">TikTok</span></td>
+              <td>@benjamin_hyperclass</td>
+              <td style="max-width:200px;">비즈니스 시스템 없는 성장은 불꽃놀이</td>
+              <td>2.3K</td>
+              <td>51</td>
+              <td>3</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>TK4</td>
+              <td><span class="tag tag-muted" style="font-size:0.68rem;">TikTok</span></td>
+              <td>@mindhackkr</td>
+              <td style="max-width:200px;">뇌는 캠코더가 아닌 편집기</td>
+              <td>45</td>
+              <td>2</td>
+              <td>2</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>IG1</td>
+              <td><span class="tag tag-muted" style="font-size:0.68rem;">Instagram</span></td>
+              <td>@psychologyof_theday</td>
+              <td style="max-width:200px;">회사에서 팀장님을 놀려야 하는 이유</td>
+              <td>6.1K</td>
+              <td>28</td>
+              <td>3</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>IG2</td>
+              <td><span class="tag tag-muted" style="font-size:0.68rem;">Instagram</span></td>
+              <td>@arrietty_day</td>
+              <td style="max-width:200px;">무조건 팔리는 심리마케팅 기술 100</td>
+              <td>514</td>
+              <td>-</td>
+              <td>4</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- SELECTION LOGIC -->
+        <div style="margin-top: 1rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+          <span style="font-size: 0.75rem; color: var(--text-muted);">선택 기준:</span>
+          <span class="tag tag-cyan" style="font-size: 0.7rem;">TK1 &mdash; 조회 23.3K (최고)</span>
+          <span class="tag tag-muted" style="font-size: 0.7rem;">공유 217 (바이럴 지표)</span>
+          <span class="tag tag-muted" style="font-size: 0.7rem;">댓글 123 (engagement)</span>
+        </div>
+
+        <!-- AI ANALYSIS RESULT -->
+        <div style="margin-top: 1rem; padding: 1rem; background: rgba(251,191,36,0.04); border: 1px solid rgba(251,191,36,0.12); border-radius: 8px;">
+          <div style="font-size: 0.7rem; color: var(--accent-yellow); font-weight: 600; margin-bottom: 0.5rem;">Gemini 영상 분석 결과 (TK1)</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.8rem; color: var(--text-secondary);">
+            <div><span class="text-muted">Core Topic:</span> AI 아바타의 충격적인 수익 창출 현실</div>
+            <div><span class="text-muted">Tone:</span> <span class="text-yellow">도발</span></div>
+            <div><span class="text-muted">Viral Factor:</span> 얼굴 없는 크리에이터 수익 모델의 호기심</div>
+            <div><span class="text-muted">Angle:</span> AI 활용 노하우를 단계별로 제시</div>
           </div>
         </div>
       </div>
