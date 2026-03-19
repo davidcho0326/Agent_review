@@ -1084,6 +1084,93 @@ html.theme-light .theme-toggle .icon-moon { display: none; }
       </div>
     </div>
 
+    <!-- SEARCH-ANALYZE PIPELINE DETAIL -->
+    <div class="card fade-up" style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.05rem; margin-bottom: 1.5rem;">Phase 1-4: 소셜 검색 &rarr; 선택 &rarr; 다운로드 &rarr; 분석</h3>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+        카드 생성 이전에 <strong>실제 바이럴 콘텐츠를 발굴하고 분석</strong>하는 전처리 파이프라인. 주제만 입력하면 3개 SNS 플랫폼에서 자동 검색합니다.
+      </p>
+
+      <!-- SEARCH FLOW -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.25rem; border: 1px solid var(--border-subtle);">
+          <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-cyan); margin-bottom: 0.75rem;">Phase 1: Search</div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <span class="tag tag-muted" style="font-size: 0.7rem;">Reddit</span>
+            <span class="tag tag-muted" style="font-size: 0.7rem;">TikTok</span>
+            <span class="tag tag-muted" style="font-size: 0.7rem;">Instagram</span>
+          </div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.75rem;">ScrapeCreators API<br>3-platform 병렬 검색<br>30일 기간 필터</p>
+        </div>
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.25rem; border: 1px solid var(--border-subtle);">
+          <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-cyan); margin-bottom: 0.75rem;">Phase 2: Select</div>
+          <p style="font-size: 0.75rem; color: var(--text-muted);">
+            <strong style="color: var(--text-secondary);">Relevance Score</strong><br>
+            토큰 오버랩 기반<br>
+            구문 일치 보너스<br>
+            동의어 확장 (AI&rarr;artificial intelligence)<br>
+            저신호 토큰 페널티
+          </p>
+          <p style="font-size: 0.72rem; color: var(--accent-yellow); margin-top: 0.5rem;">auto: 상위 3건 / manual: ID 지정</p>
+        </div>
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.25rem; border: 1px solid var(--border-subtle);">
+          <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-cyan); margin-bottom: 0.75rem;">Phase 3: Download</div>
+          <p style="font-size: 0.75rem; color: var(--text-muted);">
+            <strong style="color: var(--text-secondary);">yt-dlp</strong><br>
+            영상 다운로드 (mp4)<br>
+            썸네일 추출 (png)<br>
+            60초 타임아웃<br>
+            실패 시 caption-only fallback
+          </p>
+        </div>
+        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.25rem; border: 1px solid var(--border-subtle);">
+          <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-cyan); margin-bottom: 0.75rem;">Phase 4: Analyze</div>
+          <p style="font-size: 0.75rem; color: var(--text-muted);">
+            <strong style="color: var(--text-secondary);">Gemini Files API</strong><br>
+            영상 업로드 &rarr; 멀티모달 분석<br>
+            7개 분석 항목 추출:<br>
+          </p>
+          <div style="display:flex; flex-wrap:wrap; gap:0.3rem; margin-top:0.5rem;">
+            <span class="tag tag-cyan" style="font-size:0.6rem;">core_topic</span>
+            <span class="tag tag-cyan" style="font-size:0.6rem;">key_messages</span>
+            <span class="tag tag-cyan" style="font-size:0.6rem;">emotional_tone</span>
+            <span class="tag tag-cyan" style="font-size:0.6rem;">viral_factor</span>
+            <span class="tag tag-cyan" style="font-size:0.6rem;">card_news_angle</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTUAL EXECUTION RESULT -->
+      <div style="padding: 1rem 1.25rem; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 10px;">
+        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.75rem;">실제 실행 결과 &mdash; "비즈니스에 도움이 되는 심리학"</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+          <div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem;">검색 결과</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+              Reddit <span class="text-muted">0건</span> &bull;
+              TikTok <span class="text-good">4건</span> &bull;
+              Instagram <span class="text-good">2건</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">총 6건 / 53.9초</div>
+          </div>
+          <div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem;">선택된 포스트</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+              <span class="text-cyan">TK1</span> @kyleinmind
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">조회 23.3K &bull; 좋아요 420 &bull; 댓글 123</div>
+          </div>
+          <div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.5rem;">AI 분석 결과</div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+              <span class="text-yellow">"AI 아바타 수익 창출"</span>
+            </div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">톤: 도발 &bull; Gemini 영상 분석</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- EVOLUTION COMPARISON -->
     <div class="card fade-up" style="margin-bottom: 2rem;">
       <h3 style="font-size: 1.05rem; margin-bottom: 1.5rem;">3단계 진화: 문제 &rarr; PoC &rarr; 프로덕션</h3>
