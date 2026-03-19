@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INTENT 캐러셀 자동화 — AI 에이전트 아키텍처 진단 보고서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" rel="stylesheet">
+<style>
+/* ================================================================
+   RESET & BASE
+   ================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Pretendard Variable', 'Pretendard', 'Inter', -apple-system, sans-serif;
+  font-size: 17px;
+  line-height: 1.8;
+  overflow-x: hidden;
+}
+
+/* ================================================================
+   DESIGN TOKENS
+   ================================================================ */
+:root {
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #141414;
+  --bg-card: #1A1A1A;
+  --text-primary: #FAFAFA;
+  --text-secondary: #A0A0A0;
+  --text-muted: #666666;
+  --accent-good: #4ADE80;
+  --accent-bad: #F87171;
+  --accent-cyan: #22D3EE;
+  --accent-yellow: #FBBF24;
+  --border-subtle: #222222;
+  --border-hover: #333333;
+  --max-width: 1400px;
+  --content-padding: clamp(1.5rem, 5vw, 5rem);
+  --section-gap: clamp(5rem, 10vh, 10rem);
+}
+
+/* ================================================================
+   LIGHT THEME
+   ================================================================ */
+html.theme-light {
+  --bg-primary: #F5F5F5; --bg-secondary: #EBEBEB; --bg-card: #FFFFFF;
+  --text-primary: #1A1A1A; --text-secondary: #555555; --text-muted: #888888;
+  --border-subtle: #D8D8D8; --border-hover: #BBBBBB;
+}
+html.theme-light .hero { background: #0A0A0A !important; }
+html.theme-light .hero * { color: inherit; }
+html.theme-light .navbar.scrolled { background: rgba(245,245,245,0.92); border-bottom-color: rgba(0,0,0,0.08); }
+html.theme-light .scroll-progress { background: rgba(0,0,0,0.45); }
+html.theme-light .code-block { background: #1e1e2e; color: #cdd6f4; }
+html.theme-light .score-bar-fill { filter: brightness(0.85); }
+
+/* ================================================================
+   TYPOGRAPHY
+   ================================================================ */
+.font-display { font-family: 'Playfair Display', serif; }
+h1, h2, h3, h4, h5, h6 { font-weight: 400; }
+
+/* ================================================================
+   LAYOUT
+   ================================================================ */
+.container { max-width: var(--max-width); margin: 0 auto; padding: 0 var(--content-padding); width: 100%; }
+section { padding: var(--section-gap) 0; }
+.section-eyebrow {
+  font-family: 'Inter', sans-serif; font-size: 0.75rem; text-transform: uppercase;
+  letter-spacing: 0.15em; color: var(--text-muted); margin-bottom: 1rem;
+}
+.section-title {
+  font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400; color: var(--text-primary); margin-bottom: 1.5rem; line-height: 1.3;
+}
+.section-subtitle { color: var(--text-secondary); font-size: 1.05rem; max-width: 700px; margin-bottom: 3rem; }
+
+/* ================================================================
+   NAVBAR
+   ================================================================ */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 10000;
+  height: 64px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem; transition: all 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+.navbar.scrolled {
+  background: rgba(10,10,10,0.85); backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(34,34,34,0.6);
+}
+.nav-logo {
+  font-family: 'Playfair Display', serif; font-size: 0.85rem;
+  text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-primary); text-decoration: none;
+}
+.nav-links { display: flex; gap: 0.5rem; align-items: center; }
+.nav-links a {
+  font-family: 'Inter', sans-serif; font-size: 0.7rem; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-muted); text-decoration: none;
+  padding: 0.5rem 1rem; transition: color 0.3s; border-radius: 6px;
+}
+.nav-links a:hover { color: var(--text-primary); }
+.theme-toggle {
+  background: none; border: 1px solid var(--border-subtle); border-radius: 8px;
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-secondary); transition: all 0.3s; margin-left: 0.75rem;
+}
+.theme-toggle:hover { color: var(--text-primary); border-color: var(--border-hover); background: var(--bg-secondary); }
+.theme-toggle svg { width: 18px; height: 18px; }
+.theme-toggle .icon-sun { display: none; }
+html.theme-light .theme-toggle .icon-sun { display: block; }
+html.theme-light .theme-toggle .icon-moon { display: none; }
+
+/* ================================================================
+   SCROLL PROGRESS
+   ================================================================ */
+.scroll-progress {
+  position: fixed; top: 0; left: 0; height: 2px; background: rgba(255,255,255,0.6);
+  z-index: 10001; transition: width 0.1s linear; width: 0%;
+}
+
+/* ================================================================
+   HERO
+   ================================================================ */
+.hero {
+  min-height: 100vh; display: flex; align-items: flex-end; position: relative;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(74,222,128,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(34,211,238,0.05) 0%, transparent 50%),
+    var(--bg-primary);
+  padding-bottom: 6rem;
+}
+.hero-content { position: relative; z-index: 2; }
+.hero-eyebrow { font-family: 'Inter', sans-serif; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.2em; color: #999; margin-bottom: 1.5rem; }
+.hero-title {
+  font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 400; color: #FAFAFA; line-height: 1.15; margin-bottom: 1.5rem;
+}
+.hero-title em { font-style: italic; color: #D4D4D4; }
+.hero-desc { color: #A0A0A0; font-size: clamp(1rem, 2vw, 1.3rem); max-width: 600px; line-height: 1.7; }
+.hero-badge {
+  display: inline-block; margin-top: 2rem; padding: 0.5rem 1.5rem; border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 100px; font-size: 0.8rem; color: var(--accent-bad); letter-spacing: 0.05em;
+}
+
+/* ================================================================
+   CARDS & GRIDS
+   ================================================================ */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border-subtle);
+  border-radius: 16px; padding: 2rem; transition: border-color 0.3s;
+}
+.card:hover { border-color: var(--border-hover); }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+
+/* ================================================================
+   STAT CARDS
+   ================================================================ */
+.stat-card { text-align: center; }
+.stat-num {
+  font-family: 'Playfair Display', serif; font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 300; color: var(--text-primary); line-height: 1;
+}
+.stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.75rem; }
+.stat-sub { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+/* ================================================================
+   PIPELINE FLOW
+   ================================================================ */
+.pipeline { display: flex; align-items: center; gap: 0; flex-wrap: wrap; justify-content: center; margin: 3rem 0; }
+.pipe-node {
+  padding: 0.65rem 1.2rem; border-radius: 10px; font-size: 0.8rem; font-weight: 500;
+  white-space: nowrap; border: 1px solid var(--border-subtle); background: var(--bg-card);
+  position: relative; transition: all 0.3s;
+}
+.pipe-node.active { border-color: var(--accent-good); color: var(--accent-good); }
+.pipe-node.error { border-color: var(--accent-bad); color: var(--accent-bad); }
+.pipe-node.merged { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.pipe-arrow { color: var(--text-muted); font-size: 1.2rem; margin: 0 0.3rem; }
+.pipe-checkpoint {
+  font-size: 0.65rem; color: var(--accent-yellow); position: absolute;
+  bottom: -1.5rem; left: 50%; transform: translateX(-50%); white-space: nowrap;
+}
+
+/* ================================================================
+   SCORE BARS
+   ================================================================ */
+.score-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+.score-label { width: 200px; font-size: 0.85rem; color: var(--text-secondary); flex-shrink: 0; }
+.score-bar { flex: 1; height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden; }
+.score-bar-fill { height: 100%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.16,1,0.3,1); }
+.score-value { width: 60px; text-align: right; font-size: 0.9rem; font-weight: 600; flex-shrink: 0; }
+
+/* ================================================================
+   CODE BLOCKS
+   ================================================================ */
+.code-block {
+  background: #1e1e2e; border: 1px solid #313244; border-radius: 12px;
+  padding: 1.5rem; overflow-x: auto; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.82rem; line-height: 1.7; color: #cdd6f4; margin: 1.5rem 0;
+}
+.code-block .code-filename {
+  display: block; font-size: 0.7rem; color: #6c7086; margin-bottom: 1rem;
+  padding-bottom: 0.75rem; border-bottom: 1px solid #313244;
+}
+.code-line-error { background: rgba(248,113,113,0.12); margin: 0 -1.5rem; padding: 0 1.5rem; display: block; }
+.code-line-good { background: rgba(74,222,128,0.08); margin: 0 -1.5rem; padding: 0 1.5rem; display: block; }
+.code-comment { color: #6c7086; }
+.code-string { color: #a6e3a1; }
+.code-keyword { color: #cba6f7; }
+.code-func { color: #89b4fa; }
+.code-var { color: #f9e2af; }
+
+/* ================================================================
+   DATA TABLES
+   ================================================================ */
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; }
+.data-table th {
+  background: var(--bg-secondary); padding: 1rem 1.5rem; font-size: 0.75rem;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);
+  text-align: left; font-weight: 600;
+}
+.data-table td {
+  padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.9rem; color: var(--text-secondary);
+}
+.data-table tr:last-child td { border-bottom: none; }
+
+/* ================================================================
+   COLOR SWATCHES
+   ================================================================ */
+.swatch-row { display: flex; gap: 2rem; align-items: center; flex-wrap: wrap; }
+.swatch {
+  display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+}
+.swatch-circle {
+  width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.swatch-label { font-size: 0.75rem; color: var(--text-muted); text-align: center; }
+.swatch-hex { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); font-family: 'SF Mono', monospace; }
+
+/* ================================================================
+   MATURITY LADDER
+   ================================================================ */
+.maturity-ladder { display: flex; flex-direction: column; gap: 0; margin: 2rem 0; }
+.maturity-step {
+  display: flex; align-items: center; gap: 1.5rem; padding: 1.25rem 1.5rem;
+  border-left: 3px solid var(--border-subtle); position: relative; transition: all 0.3s;
+}
+.maturity-step.current { border-left-color: var(--accent-cyan); background: rgba(34,211,238,0.05); border-radius: 0 12px 12px 0; }
+.maturity-step.target { border-left-color: var(--accent-good); background: rgba(74,222,128,0.05); border-radius: 0 12px 12px 0; }
+.maturity-step.future { opacity: 0.4; }
+.maturity-level {
+  width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center;
+  justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+  background: var(--bg-secondary); color: var(--text-muted);
+}
+.maturity-step.current .maturity-level { background: rgba(34,211,238,0.15); color: var(--accent-cyan); }
+.maturity-step.target .maturity-level { background: rgba(74,222,128,0.15); color: var(--accent-good); }
+.maturity-name { font-weight: 600; font-size: 0.95rem; }
+.maturity-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+/* ================================================================
+   ROADMAP TIMELINE
+   ================================================================ */
+.roadmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin: 2rem 0; }
+.roadmap-item { position: relative; }
+.roadmap-phase {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em;
+  color: var(--accent-good); margin-bottom: 0.5rem;
+}
+.roadmap-item.priority .roadmap-phase { color: var(--accent-bad); }
+.roadmap-period { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+
+/* ================================================================
+   COMPARISON (AS-IS / TO-BE)
+   ================================================================ */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0; }
+.compare-card { border-radius: 16px; padding: 2rem; border: 1px solid var(--border-subtle); }
+.compare-card.asis { background: rgba(248,113,113,0.04); border-color: rgba(248,113,113,0.2); }
+.compare-card.tobe { background: rgba(74,222,128,0.04); border-color: rgba(74,222,128,0.2); }
+.compare-label {
+  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em;
+  margin-bottom: 1rem; font-weight: 600;
+}
+.compare-card.asis .compare-label { color: var(--accent-bad); }
+.compare-card.tobe .compare-label { color: var(--accent-good); }
+
+/* ================================================================
+   GALLERY
+   ================================================================ */
+.gallery-scroll {
+  display: flex; gap: 1.25rem; overflow-x: auto; padding: 1rem 0 2rem;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+}
+.gallery-scroll::-webkit-scrollbar { height: 4px; }
+.gallery-scroll::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 2px; }
+.gallery-scroll::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 2px; }
+.gallery-item {
+  flex-shrink: 0; width: 220px; scroll-snap-align: start; position: relative;
+}
+.gallery-item img {
+  width: 100%; aspect-ratio: 4/5; object-fit: cover; border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+}
+.gallery-caption {
+  text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.75rem;
+}
+.gallery-badge {
+  position: absolute; top: 0.75rem; left: 0.75rem; padding: 0.25rem 0.6rem;
+  background: rgba(0,0,0,0.7); border-radius: 6px; font-size: 0.7rem; color: #fff;
+  backdrop-filter: blur(8px);
+}
+
+/* ================================================================
+   QUOTE
+   ================================================================ */
+.quote-block {
+  border-left: 3px solid var(--accent-cyan); padding: 2rem 2.5rem;
+  background: rgba(34,211,238,0.03); border-radius: 0 16px 16px 0; margin: 2rem 0;
+}
+.quote-text {
+  font-family: 'Playfair Display', serif; font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-style: italic; color: var(--text-primary); line-height: 1.5;
+}
+.quote-attr { font-size: 0.8rem; color: var(--text-muted); margin-top: 1rem; }
+
+/* ================================================================
+   ANIMATIONS
+   ================================================================ */
+.fade-up { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+.scale-down { opacity: 0; transform: scale(1.08); transition: opacity 0.9s cubic-bezier(0.16,1,0.3,1), transform 0.9s cubic-bezier(0.16,1,0.3,1); }
+.scale-down.visible { opacity: 1; transform: scale(1); }
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+
+/* ================================================================
+   BADGE / TAG
+   ================================================================ */
+.tag { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 100px; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.03em; }
+.tag-good { background: rgba(74,222,128,0.1); color: var(--accent-good); border: 1px solid rgba(74,222,128,0.2); }
+.tag-bad { background: rgba(248,113,113,0.1); color: var(--accent-bad); border: 1px solid rgba(248,113,113,0.2); }
+.tag-cyan { background: rgba(34,211,238,0.1); color: var(--accent-cyan); border: 1px solid rgba(34,211,238,0.2); }
+.tag-yellow { background: rgba(251,191,36,0.1); color: var(--accent-yellow); border: 1px solid rgba(251,191,36,0.2); }
+.tag-muted { background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+
+/* ================================================================
+   MISC
+   ================================================================ */
+.text-good { color: var(--accent-good); }
+.text-bad { color: var(--accent-bad); }
+.text-cyan { color: var(--accent-cyan); }
+.text-yellow { color: var(--accent-yellow); }
+.text-muted { color: var(--text-muted); }
+.divider { height: 1px; background: var(--border-subtle); margin: 3rem 0; }
+.back-to-top {
+  position: fixed; bottom: 2rem; right: 2rem; width: 44px; height: 44px;
+  background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 12px;
+  display: none; align-items: center; justify-content: center; cursor: pointer;
+  color: var(--text-secondary); z-index: 9999; transition: all 0.3s;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.back-to-top:hover { border-color: var(--border-hover); color: var(--text-primary); }
+
+/* ================================================================
+   RESPONSIVE
+   ================================================================ */
+@media (max-width: 768px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .compare-grid { grid-template-columns: 1fr; }
+  .roadmap { grid-template-columns: repeat(2, 1fr); }
+  .pipeline { gap: 0.25rem; }
+  .pipe-node { font-size: 0.7rem; padding: 0.5rem 0.75rem; }
+  .nav-links a { display: none; }
+  .score-label { width: 120px; font-size: 0.75rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- SCROLL PROGRESS -->
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <a href="#" class="nav-logo">INTENT Review</a>
+  <div class="nav-links">
+    <a href="#overview">Overview</a>
+    <a href="#diagnosis">Diagnosis</a>
+    <a href="#defects">Defects</a>
+    <a href="#correct-approach">PoC</a>
+    <a href="#expanded-agent">Production</a>
+    <a href="#roadmap">Roadmap</a>
+    <button class="theme-toggle" id="themeToggle">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- ================================================================
+     SECTION 0: HERO
+     ================================================================ -->
+<section class="hero">
+  <div class="container hero-content">
+    <div class="hero-eyebrow fade-up">AI Transformation Consultant Review</div>
+    <h1 class="hero-title fade-up stagger-1">
+      INTENT <em>Instagram Carousel</em><br>
+      AI Agent Architecture<br>
+      Diagnostic Report
+    </h1>
+    <p class="hero-desc fade-up stagger-2">
+      8-에이전트 파이프라인의 설계 품질, 구현 갭, 그리고 올바른 에이전트 구축 방법론에 대한 정밀 진단
+    </p>
+    <div class="hero-badge fade-up stagger-3">Score: 1.98 / 5.00 &mdash; Maturity Level 2</div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SECTION 1: PROJECT OVERVIEW
+     ================================================================ -->
+<section id="overview">
+  <div class="container">
+    <div class="section-eyebrow fade-up">01 &mdash; Project Overview</div>
+    <h2 class="section-title fade-up stagger-1">프로젝트 개요</h2>
+    <p class="section-subtitle fade-up stagger-2">@intent_in10t 인스타그램 채널을 위한 경험디자인 교육 캐러셀 7장을 AI 에이전트 파이프라인으로 자동 생성하는 시스템</p>
+
+    <!-- STAT CARDS -->
+    <div class="grid-4" style="margin-bottom: 3rem;">
+      <div class="card stat-card fade-up stagger-1">
+        <div class="stat-num">8</div>
+        <div class="stat-label">Agents</div>
+        <div class="stat-sub">Claude Code 서브에이전트</div>
+      </div>
+      <div class="card stat-card fade-up stagger-2">
+        <div class="stat-num" style="color: var(--accent-bad);">1,161</div>
+        <div class="stat-label">Lines of Docs</div>
+        <div class="stat-sub">설계서 (intent_design.md)</div>
+      </div>
+      <div class="card stat-card fade-up stagger-3">
+        <div class="stat-num">2</div>
+        <div class="stat-label">Python Scripts</div>
+        <div class="stat-sub">~412줄 실제 코드</div>
+      </div>
+      <div class="card stat-card fade-up stagger-4">
+        <div class="stat-num" style="color: var(--accent-good);">2</div>
+        <div class="stat-label">Episodes Done</div>
+        <div class="stat-sub">토스, ChatGPT UX</div>
+      </div>
+    </div>
+
+    <!-- PIPELINE FLOW -->
+    <div class="card fade-up" style="padding: 2.5rem 2rem 3.5rem;">
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted); margin-bottom: 1.5rem;">8-Agent Pipeline</div>
+      <div class="pipeline">
+        <div class="pipe-node active" style="position:relative;">Scout<span class="pipe-checkpoint">&#9208; 사람 소재 선택</span></div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node">Analyst</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node" style="position:relative;">Strategist<span class="pipe-checkpoint">&#9208; 사람 최종 승인</span></div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node">Designer</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node">Writer</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node">Editor</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node">Publisher</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node" style="opacity:0.5;">Growth</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SECTION 2: DIAGNOSIS SCORES
+     ================================================================ -->
+<section id="diagnosis" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="section-eyebrow fade-up">02 &mdash; Dimensional Diagnosis</div>
+    <h2 class="section-title fade-up stagger-1">차원별 진단 결과</h2>
+    <p class="section-subtitle fade-up stagger-2">Anthropic · Andrew Ng · LangGraph 3대 프레임워크 기준, 5점 만점. 종합: <strong style="color: var(--accent-bad);">1.98 / 5.00</strong></p>
+
+    <div class="card fade-up" style="padding: 2.5rem;">
+      <div class="score-row">
+        <div class="score-label">오케스트레이션 아키텍처 <span class="tag tag-muted" style="margin-left:0.5rem;">25%</span></div>
+        <div class="score-bar"><div class="score-bar-fill" style="width:50%; background: linear-gradient(90deg, var(--accent-yellow), var(--accent-bad));"></div></div>
+        <div class="score-value text-yellow">2.5</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">에이전트 설계 품질 <span class="tag tag-muted" style="margin-left:0.5rem;">20%</span></div>
+        <div class="score-bar"><div class="score-bar-fill" style="width:60%; background: linear-gradient(90deg, var(--accent-yellow), var(--accent-good));"></div></div>
+        <div class="score-value text-good">3.0</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">상태 관리 및 데이터 교환 <span class="tag tag-muted" style="margin-left:0.5rem;">25%</span></div>
+        <div class="score-bar"><div class="score-bar-fill" style="width:30%; background: linear-gradient(90deg, var(--accent-bad), var(--accent-yellow));"></div></div>
+        <div class="score-value text-bad">1.5</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">피드백 루프 및 학습 <span class="tag tag-muted" style="margin-left:0.5rem;">15%</span></div>
+        <div class="score-bar"><div class="score-bar-fill" style="width:20%; background: var(--accent-bad);"></div></div>
+        <div class="score-value text-bad">1.0</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">운영 준비도 <span class="tag tag-muted" style="margin-left:0.5rem;">15%</span></div>
+        <div class="score-bar"><div class="score-bar-fill" style="width:30%; background: linear-gradient(90deg, var(--accent-bad), var(--accent-yellow));"></div></div>
+        <div class="score-value text-bad">1.5</div>
+      </div>
+    </div>
+
+    <!-- ANDREW NG PATTERNS -->
+    <div class="grid-4" style="margin-top: 2rem;">
+      <div class="card fade-up stagger-1" style="text-align:center;">
+        <div class="tag tag-bad" style="margin-bottom:1rem;">Not Implemented</div>
+        <h4 style="font-size:0.95rem;">Reflection</h4>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.5rem;">Growth Analyst 피드백을 어떤 에이전트도 읽지 않음</p>
+      </div>
+      <div class="card fade-up stagger-2" style="text-align:center;">
+        <div class="tag tag-yellow" style="margin-bottom:1rem;">Partial</div>
+        <h4 style="font-size:0.95rem;">Tool Use</h4>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.5rem;">2/8 에이전트만 외부 API Tool 연결</p>
+      </div>
+      <div class="card fade-up stagger-3" style="text-align:center;">
+        <div class="tag tag-bad" style="margin-bottom:1rem;">Not Implemented</div>
+        <h4 style="font-size:0.95rem;">Planning</h4>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.5rem;">동적 작업 분해 없음. 7장 고정 구조</p>
+      </div>
+      <div class="card fade-up stagger-4" style="text-align:center;">
+        <div class="tag tag-cyan" style="margin-bottom:1rem;">Claude Code Native</div>
+        <h4 style="font-size:0.95rem;">Multi-Agent</h4>
+        <p style="font-size:0.78rem; color:var(--text-muted); margin-top:0.5rem;">서브에이전트 구현됨. 파일 기반 핸드오프만</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SECTION 4: CRITICAL DEFECTS
+     ================================================================ -->
+<section id="defects" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="section-eyebrow fade-up">03 &mdash; Critical Structural Defects</div>
+    <h2 class="section-title fade-up stagger-1">핵심 구조적 결함</h2>
+
+    <!-- 4.1 LAST MILE -->
+    <div class="card fade-up" style="margin-bottom: 2rem; border-color: rgba(248,113,113,0.3);">
+      <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+        <span class="tag tag-bad">Critical</span>
+        <h3 style="font-size: 1.15rem;">4.1 역전된 개발 우선순위 &mdash; "라스트 마일" 부재</h3>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+        파이프라인이 <strong>"텍스트 없는 배경 이미지"</strong>에서 멈춘다. 한글 카피를 이미지 위에 합성하는 코드가 프로젝트 어디에도 없다.
+      </p>
+
+      <!-- PIPELINE BREAK DIAGRAM -->
+      <div class="pipeline" style="margin: 2rem 0;">
+        <div class="pipe-node active">프롬프트 8개</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node active">카피 생성</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node active">배경 이미지</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node error" style="font-size: 1.2rem; font-weight: 700;">???</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node" style="opacity: 0.4;">최종 인스타 카드</div>
+      </div>
+
+      <!-- CODE EVIDENCE -->
+      <div class="code-block">
+        <span class="code-filename">scripts/gemini_image_gen.py &mdash; Line 34-38</span>
+<span class="code-var">BRAND_PREFIX</span> = (
+    <span class="code-string">"Instagram carousel slide, 1080x1350 pixels, 4:5 portrait format. "</span>
+    <span class="code-string">"Professional editorial photography style with gradient overlays. "</span>
+<span class="code-line-error">    <span class="code-string">"DO NOT render any text, letters, numbers, or characters in the image. "</span></span>
+<span class="code-line-error">    <span class="code-string">"Leave clean areas for text overlay. "</span></span>
+)
+      </div>
+
+      <!-- DIFFICULTY TABLE -->
+      <table class="data-table" style="margin-top: 1.5rem;">
+        <thead>
+          <tr><th>단계</th><th>난이도</th><th>구현</th><th>소요 에너지</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>소재 탐색 (Scout)</td><td><span class="tag tag-good">낮음</span></td><td class="text-good">&#10003; 완성</td><td>높음</td></tr>
+          <tr><td>이론 분석 (Analyst)</td><td><span class="tag tag-good">낮음</span></td><td class="text-good">&#10003; 완성</td><td>높음</td></tr>
+          <tr><td>기획 (Strategist)</td><td><span class="tag tag-good">낮음</span></td><td class="text-good">&#10003; 완성</td><td>높음</td></tr>
+          <tr><td>카피 작성 (Writer)</td><td><span class="tag tag-yellow">중간</span></td><td class="text-good">&#10003; 완성</td><td>중간</td></tr>
+          <tr><td>배경 이미지 생성</td><td><span class="tag tag-yellow">중간</span></td><td class="text-good">&#10003; 완성</td><td>중간</td></tr>
+          <tr style="background: rgba(248,113,113,0.06);"><td><strong>텍스트 오버레이 + 최종 이미지</strong></td><td><span class="tag tag-bad">높음</span></td><td class="text-bad"><strong>&#10007; 미구현</strong></td><td>없음</td></tr>
+          <tr style="background: rgba(248,113,113,0.06);"><td><strong>Figma 프레임 삽입</strong></td><td><span class="tag tag-bad">높음</span></td><td class="text-bad"><strong>&#10007; 실험 후 포기</strong></td><td>최소</td></tr>
+        </tbody>
+      </table>
+
+      <!-- CORRECT APPROACH -->
+      <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(74,222,128,0.04); border: 1px solid rgba(74,222,128,0.15); border-radius: 12px;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent-good); margin-bottom: 1rem;">Recommended: Backward Development</div>
+        <div class="pipeline">
+          <div class="pipe-node merged">1. 최종 아웃풋 정의</div>
+          <span class="pipe-arrow">&larr;</span>
+          <div class="pipe-node merged">2. 직전 단계 PoC</div>
+          <span class="pipe-arrow">&larr;</span>
+          <div class="pipe-node merged">3. 도구 검증</div>
+          <span class="pipe-arrow">&larr;</span>
+          <div class="pipe-node merged">4. 상류 연결</div>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 1.25rem;">
+          가장 난이도가 높고 불확실한 부분을 먼저 모듈화하여 PoC로 검증한다. 이 모듈이 작동하면, 나머지 파이프라인은 자연스럽게 이 모듈의 입력 스펙에 맞춰 설계된다.
+        </p>
+      </div>
+    </div>
+
+    <!-- 4.2 AGENT PROLIFERATION -->
+    <div class="card fade-up" style="margin-bottom: 2rem;">
+      <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+        <span class="tag tag-yellow">Structural</span>
+        <h3 style="font-size: 1.15rem;">4.2 에이전트 과잉 설계 (Agent Proliferation)</h3>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+        8개 에이전트 중 고유한 "생성" 작업을 하는 것은 Scout과 Writer 2개뿐. 나머지는 검증, 변환, 또는 중복 사고 과정.
+      </p>
+
+      <!-- AGENT ROLE TABLE -->
+      <table class="data-table" style="margin-bottom: 2rem;">
+        <thead><tr><th>에이전트</th><th>유형</th><th>생성%</th><th>검증%</th><th>통합 제안</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Scout</strong></td><td><span class="tag tag-good">생성</span></td><td>70%</td><td>20%</td><td class="text-muted">유지</td></tr>
+          <tr style="background:rgba(251,191,36,0.04);"><td>Analyst</td><td><span class="tag tag-yellow">중복</span></td><td>40%</td><td>40%</td><td rowspan="2" style="vertical-align:middle;" class="text-cyan"><strong>&rarr; Narrative Architect</strong></td></tr>
+          <tr style="background:rgba(251,191,36,0.04);"><td>Strategist</td><td><span class="tag tag-yellow">중복</span></td><td>60%</td><td>30%</td></tr>
+          <tr style="background:rgba(34,211,238,0.04);"><td>Designer</td><td><span class="tag tag-muted">스펙</span></td><td>50%</td><td>40%</td><td rowspan="3" style="vertical-align:middle;" class="text-cyan"><strong>&rarr; Creative Producer</strong></td></tr>
+          <tr style="background:rgba(34,211,238,0.04);"><td><strong>Writer</strong></td><td><span class="tag tag-good">생성</span></td><td>80%</td><td>15%</td></tr>
+          <tr style="background:rgba(34,211,238,0.04);"><td>Editor</td><td><span class="tag tag-bad">검증</span></td><td>10%</td><td>70%</td></tr>
+          <tr><td><strong>Publisher</strong></td><td><span class="tag tag-good">변환</span></td><td>70%</td><td>20%</td><td class="text-muted">유지</td></tr>
+          <tr><td>Growth Analyst</td><td><span class="tag tag-muted">피드백</span></td><td>40%</td><td>50%</td><td class="text-muted">유지 (비동기)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- AS-IS vs TO-BE -->
+      <div class="compare-grid">
+        <div class="compare-card asis">
+          <div class="compare-label">AS-IS &mdash; 8 Agents</div>
+          <div class="pipeline" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem;"><div class="pipe-node" style="font-size:0.75rem;">Scout</div><span class="pipe-arrow">&rarr;</span><div class="pipe-node" style="font-size:0.75rem;">Analyst</div><span class="pipe-arrow">&rarr;</span><div class="pipe-node" style="font-size:0.75rem;">Strategist</div></div>
+            <div style="display:flex; align-items:center; gap:0.5rem;"><span class="pipe-arrow">&rarr;</span><div class="pipe-node" style="font-size:0.75rem;">Designer</div><span class="pipe-arrow">&rarr;</span><div class="pipe-node" style="font-size:0.75rem;">Writer</div><span class="pipe-arrow">&rarr;</span><div class="pipe-node" style="font-size:0.75rem;">Editor</div></div>
+            <div style="display:flex; align-items:center; gap:0.5rem;"><span class="pipe-arrow">&rarr;</span><div class="pipe-node" style="font-size:0.75rem;">Publisher</div><span class="pipe-arrow">&rarr;</span><div class="pipe-node" style="font-size:0.75rem; opacity:0.5;">Growth</div></div>
+          </div>
+          <div style="margin-top:1.25rem; font-size:0.82rem; color:var(--text-muted);">8 spawns &bull; 7 handoff files &bull; 7 context loss points</div>
+        </div>
+        <div class="compare-card tobe">
+          <div class="compare-label">TO-BE &mdash; 4 Agents</div>
+          <div class="pipeline" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <div class="pipe-node merged" style="font-size:0.75rem;">Scout</div>
+              <span class="pipe-arrow">&rarr;</span>
+              <div class="pipe-node merged" style="font-size:0.75rem;">Narrative Architect</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+              <span class="pipe-arrow">&rarr;</span>
+              <div class="pipe-node merged" style="font-size:0.75rem;">Creative Producer</div>
+              <span class="pipe-arrow">&rarr;</span>
+              <div class="pipe-node merged" style="font-size:0.75rem;">Publisher</div>
+            </div>
+          </div>
+          <div style="margin-top:1.25rem; font-size:0.82rem; color:var(--text-muted);">4 spawns &bull; 3 handoff files &bull; 3 context loss points</div>
+          <div style="margin-top: 0.75rem; display: flex; gap: 1rem;">
+            <span class="tag tag-good">-50% spawns</span>
+            <span class="tag tag-good">-57% context loss</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================================================================
+     SECTION 5: GALLERY
+     ================================================================ -->
+<section id="gallery">
+  <div class="container">
+    <div class="section-eyebrow fade-up">04 &mdash; Generated Output Gallery</div>
+    <h2 class="section-title fade-up stagger-1">실제 산출물</h2>
+    <p class="section-subtitle fade-up stagger-2">Episode 2 "ChatGPT 대화 UX" &mdash; 배경 이미지 7장이 생성되었으나, 텍스트 오버레이 없이 파이프라인이 종료됨</p>
+
+    <div class="gallery-scroll fade-up">
+      <div class="gallery-item"><div class="gallery-badge">P1 Hook</div><img src="assets/insta_auto/P1.png" alt="P1" loading="lazy"><div class="gallery-caption">배경만 &mdash; 텍스트 없음</div></div>
+      <div class="gallery-item"><div class="gallery-badge">P2 Status Quo</div><img src="assets/insta_auto/P2.png" alt="P2" loading="lazy"><div class="gallery-caption">배경만 &mdash; 텍스트 없음</div></div>
+      <div class="gallery-item"><div class="gallery-badge">P3 Theory</div><img src="assets/insta_auto/P3.png" alt="P3" loading="lazy"><div class="gallery-caption">배경만 &mdash; 텍스트 없음</div></div>
+      <div class="gallery-item"><div class="gallery-badge">P4 Analysis 1</div><img src="assets/insta_auto/P4.png" alt="P4" loading="lazy"><div class="gallery-caption">배경만 &mdash; 텍스트 없음</div></div>
+      <div class="gallery-item"><div class="gallery-badge">P5 Analysis 2</div><img src="assets/insta_auto/P5.png" alt="P5" loading="lazy"><div class="gallery-caption">배경만 &mdash; 텍스트 없음</div></div>
+      <div class="gallery-item"><div class="gallery-badge">P6 Insight</div><img src="assets/insta_auto/P6.png" alt="P6" loading="lazy"><div class="gallery-caption">배경만 &mdash; 텍스트 없음</div></div>
+      <div class="gallery-item"><div class="gallery-badge">P7 CTA</div><img src="assets/insta_auto/P7.png" alt="P7" loading="lazy"><div class="gallery-caption">배경만 &mdash; 텍스트 없음</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SECTION: CORRECT APPROACH — figma_mcp_test
+     ================================================================ -->
+<section id="correct-approach">
+  <div class="container">
+    <div class="section-eyebrow fade-up">04-B &mdash; The Correct Approach</div>
+    <h2 class="section-title fade-up stagger-1">올바른 접근 &mdash; <em style="font-family:'Playfair Display',serif;">figma_mcp_test</em></h2>
+    <p class="section-subtitle fade-up stagger-2">같은 목적(인스타 캐러셀 자동화)을 "최종 산출물부터 역방향"으로 구축한 실제 사례</p>
+
+    <!-- PROJECT OVERVIEW -->
+    <div class="card fade-up" style="margin-bottom: 2rem; border-color: rgba(74,222,128,0.3);">
+      <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+        <span class="tag tag-good">Production Ready</span>
+        <h3 style="font-size: 1.15rem;">제품 이미지 + 주제 &rarr; 5장 캐러셀 &rarr; Figma 자동 삽입</h3>
+      </div>
+
+      <!-- PIPELINE FLOW -->
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted); margin-bottom: 1.25rem;">Backward-Built Pipeline</div>
+      <div class="pipeline" style="margin-bottom: 2rem;">
+        <div class="pipe-node merged">0. HTML 템플릿<br><span style="font-size:0.65rem;color:var(--text-muted);">고정 1080x1350</span></div>
+        <span class="pipe-arrow">&larr;</span>
+        <div class="pipe-node merged">1. JSON 스키마<br><span style="font-size:0.65rem;color:var(--text-muted);">5-slide 구조</span></div>
+        <span class="pipe-arrow">&larr;</span>
+        <div class="pipe-node merged">2. Gemini Image &times;5<br><span style="font-size:0.65rem;color:var(--text-muted);">retry 내장</span></div>
+        <span class="pipe-arrow">&larr;</span>
+        <div class="pipe-node merged">3. Gemini Pro Text<br><span style="font-size:0.65rem;color:var(--text-muted);">콘텐츠 생성</span></div>
+      </div>
+      <div style="text-align:center; font-size:0.82rem; color:var(--text-muted); margin-bottom:2rem;">
+        &darr; 최종 산출물 방향 &darr;
+      </div>
+      <div class="pipeline">
+        <div class="pipe-node active">HTML 렌더링</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node active">Local HTTP 서버</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node active" style="border-color: var(--accent-good); color: var(--accent-good);">Figma MCP 캡처</div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node active" style="border-color: var(--accent-good); color: var(--accent-good); font-weight:700;">Figma 프레임 완성</div>
+      </div>
+    </div>
+
+    <!-- COMPARISON TABLE -->
+    <div class="card fade-up" style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.05rem; margin-bottom: 1.5rem;">핵심 비교: insta_auto vs figma_mcp_test</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>항목</th><th style="color:var(--accent-bad);">insta_auto (AS-IS)</th><th style="color:var(--accent-good);">figma_mcp_test (TO-BE)</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>개발 순서</strong></td>
+            <td class="text-bad">프롬프트 &rarr; 카피 &rarr; 이미지 &rarr; ??? (정방향)</td>
+            <td class="text-good">Figma 캡처 &rarr; HTML 템플릿 &rarr; 스키마 &rarr; AI (역방향)</td>
+          </tr>
+          <tr>
+            <td><strong>최종 산출물</strong></td>
+            <td class="text-bad">텍스트 없는 배경 이미지 (PNG)</td>
+            <td class="text-good">텍스트 포함 완성 카드 &rarr; Figma 프레임</td>
+          </tr>
+          <tr>
+            <td><strong>에이전트 수</strong></td>
+            <td>8개 (6개는 프롬프트만)</td>
+            <td>4개 Python 모듈 (모두 실행 가능)</td>
+          </tr>
+          <tr>
+            <td><strong>라스트 마일</strong></td>
+            <td class="text-bad">미구현 &mdash; 수동 Figma/Canva 작업 필요</td>
+            <td class="text-good">capture.js + HTTP 서버 &rarr; Figma 자동 삽입</td>
+          </tr>
+          <tr>
+            <td><strong>에러 핸들링</strong></td>
+            <td class="text-bad">없음 (API 실패 시 traceback)</td>
+            <td class="text-good">Exponential backoff (2s/5s/10s), 부분 실패 허용</td>
+          </tr>
+          <tr>
+            <td><strong>설정 관리</strong></td>
+            <td class="text-bad">3개 문서에서 서로 다른 컬러값</td>
+            <td class="text-good">carousel_config.py 단일 소스</td>
+          </tr>
+          <tr>
+            <td><strong>E2E 작동</strong></td>
+            <td class="text-bad">파이프라인 중간에서 멈춤</td>
+            <td class="text-good">이미지 입력 &rarr; Figma 프레임까지 완전 자동</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- CODE EVIDENCE -->
+    <div class="grid-2">
+      <div class="card fade-up stagger-1">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-bad); margin-bottom: 1rem;">insta_auto &mdash; No Error Handling</div>
+        <div class="code-block" style="margin:0;">
+<span class="code-filename">gemini_writer.py &mdash; Line 84</span>
+<span class="code-comment"># API 호출 &mdash; try-except 없음</span>
+<span class="code-line-error">response = gen_model.<span class="code-func">generate_content</span>(user_prompt)</span>
+<span class="code-comment"># 타임아웃 시 Python traceback으로 종료</span>
+        </div>
+      </div>
+      <div class="card fade-up stagger-2">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-good); margin-bottom: 1rem;">figma_mcp_test &mdash; Exponential Backoff</div>
+        <div class="code-block" style="margin:0;">
+<span class="code-filename">carousel_image_gen.py</span>
+<span class="code-var">MAX_RETRIES</span> = <span class="code-string">3</span>
+<span class="code-var">RETRY_DELAYS</span> = [<span class="code-string">2</span>, <span class="code-string">5</span>, <span class="code-string">10</span>]
+
+<span class="code-keyword">for</span> attempt <span class="code-keyword">in</span> <span class="code-func">range</span>(MAX_RETRIES):
+    <span class="code-keyword">try</span>:
+<span class="code-line-good">        response = client.models.<span class="code-func">generate_content</span>(...)</span>
+        <span class="code-keyword">break</span>
+    <span class="code-keyword">except</span> Exception:
+        time.<span class="code-func">sleep</span>(RETRY_DELAYS[attempt])
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE DEMO RESULT -->
+    <div class="card fade-up" style="margin-bottom: 2rem; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.03);">
+      <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+        <span class="tag tag-good">Live Demo</span>
+        <h3 style="font-size: 1.15rem;">실제 실행 결과 &mdash; 15초 만에 Figma 프레임 완성</h3>
+      </div>
+
+      <div class="compare-grid">
+        <!-- ORIGINAL -->
+        <div style="text-align:center;">
+          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-bad); margin-bottom: 1rem;">원본 &mdash; "분석3" (수동 제작)</div>
+          <div style="background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-subtle); display: inline-block;">
+            <img src="assets/insta_auto/P4.png" alt="원본 분석3" style="width: 280px; aspect-ratio: 4/5; object-fit: cover; display: block;" loading="lazy" />
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.75rem;">호기심 표정 / Figma에서 수동 제작</div>
+        </div>
+        <!-- NEW -->
+        <div style="text-align:center;">
+          <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent-good); margin-bottom: 1rem;">AI 생성 &mdash; "사랑스러운 표정" (자동)</div>
+          <div style="background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid rgba(74,222,128,0.3); display: inline-block;">
+            <img src="assets/figma_mcp/char_loving.png" alt="AI 생성 사랑스러운 표정" style="width: 280px; aspect-ratio: 3/4; object-fit: cover; display: block;" onerror="this.parentElement.innerHTML='<div style=\'padding:3rem;color:var(--text-muted);font-size:0.8rem;\'>이미지 로드 실패<br>char_loving.png</div>'" loading="lazy" />
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.75rem;">하트 눈 표정 / Gemini Image &rarr; Figma 자동 삽입</div>
+        </div>
+      </div>
+
+      <!-- PIPELINE EXECUTION LOG -->
+      <div style="margin-top: 2rem; padding: 1.25rem 1.5rem; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle);">
+        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 1rem;">Execution Log</div>
+        <div class="code-block" style="margin: 0; font-size: 0.78rem;">
+<span class="code-comment"># Phase 1: Gemini Image API &mdash; 캐릭터 베리에이션 생성</span>
+<span class="code-line-good"><span class="code-func">generate_character_variation</span>(
+    ref_image=<span class="code-string">"original_character.png"</span>,
+    prompt=<span class="code-string">"loving expression with heart eyes and sweet smile"</span>
+) <span class="code-comment"># &rarr; char_loving.png (896&times;1200) ~3초</span></span>
+
+<span class="code-comment"># Phase 2: HTML 카드 생성 &mdash; 고정 1080&times;1350 템플릿</span>
+<span class="code-line-good"><span class="code-func">generate_character_card_html</span>(
+    image=<span class="code-string">"char_loving.png"</span>,
+    highlight=<span class="code-string">"캐릭터가 사랑스러우면 앱을 더 열게 될까요?"</span>,
+    bg_color=<span class="code-string">"#7B5EA7"</span>
+) <span class="code-comment"># &rarr; card_loving.html ~즉시</span></span>
+
+<span class="code-comment"># Phase 3: Figma MCP 캡처 &mdash; 로컬 서버 &rarr; capture.js &rarr; Figma</span>
+<span class="code-line-good">localhost:8889/card_loving.html &rarr; <span class="code-func">Figma MCP capture</span>
+<span class="code-comment"># &rarr; node-id=83:2 삽입 완료 ~10초</span></span>
+
+<span style="color: var(--accent-good); font-weight: 600;">Total: ~15초 &mdash; E2E 완전 자동화</span>
+        </div>
+      </div>
+
+      <!-- FIGMA LINK -->
+      <div style="margin-top: 1.5rem; text-align: center;">
+        <a href="https://www.figma.com/design/inuxM4oZWXoyPY9kqqUpPl/MCP-Test?node-id=83-2" target="_blank" rel="noopener"
+           style="display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.75rem 2rem; background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25); border-radius: 100px; color: var(--accent-good); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: all 0.3s;"
+           onmouseover="this.style.background='rgba(74,222,128,0.15)';this.style.borderColor='rgba(74,222,128,0.4)'"
+           onmouseout="this.style.background='rgba(74,222,128,0.08)';this.style.borderColor='rgba(74,222,128,0.25)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+          Figma에서 결과 확인하기 &rarr;
+        </a>
+      </div>
+
+      <!-- COMPARISON STATS -->
+      <div class="grid-3" style="margin-top: 1.5rem;">
+        <div style="text-align:center; padding: 1rem;">
+          <div style="font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--accent-good);">15<span style="font-size: 1rem;">sec</span></div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">E2E 소요 시간</div>
+        </div>
+        <div style="text-align:center; padding: 1rem;">
+          <div style="font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--accent-good);">4</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Python 모듈</div>
+        </div>
+        <div style="text-align:center; padding: 1rem;">
+          <div style="font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--accent-good);">0</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">수동 작업</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- THREE PRINCIPLES -->
+    <div class="grid-3" style="margin-top: 2rem;">
+      <div class="card fade-up stagger-1" style="text-align: center; border-color: rgba(74,222,128,0.2);">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">&#128271;</div>
+        <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Immutable Schema First</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">최종 포맷(1080&times;1350 HTML)을 먼저 고정하고, AI 출력이 이 스키마에 맞추도록 강제한다</p>
+      </div>
+      <div class="card fade-up stagger-2" style="text-align: center; border-color: rgba(74,222,128,0.2);">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">&#127919;</div>
+        <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Solve Last-Mile First</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">가장 어렵고 불확실한 기술(Figma 캡처)을 첫 번째 모듈로 검증한다. 이것이 불가능하면 상류 전체가 무의미</p>
+      </div>
+      <div class="card fade-up stagger-3" style="text-align: center; border-color: rgba(74,222,128,0.2);">
+        <div style="font-size: 2rem; margin-bottom: 1rem;">&#128680;</div>
+        <h4 style="font-size: 0.95rem; margin-bottom: 0.5rem;">Make Failure Obvious</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">잘못된 HTML &rarr; Figma 캡처 즉시 실패. 6단계 뒤가 아니라 즉시 피드백. Silent failure 원천 차단</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================================================================
+     SECTION: EXPANDED AGENT — sns_card_news_for_theplay
+     ================================================================ -->
+<section id="expanded-agent" style="background: var(--bg-secondary);">
+  <div class="container">
+    <div class="section-eyebrow fade-up">04-C &mdash; Expanded Production Agent</div>
+    <h2 class="section-title fade-up stagger-1">프로덕션 확장 &mdash; <em style="font-family:'Playfair Display',serif;">sns_card_news</em></h2>
+    <p class="section-subtitle fade-up stagger-2">"비즈니스에 도움이 되는 심리학" &rarr; TikTok 검색 &rarr; 영상 분석 &rarr; 5장 캐러셀 &rarr; Figma 자동 삽입. 풀 파이프라인 E2E 실행 결과.</p>
+
+    <!-- LIVE RESULT: FULL PIPELINE -->
+    <div class="card fade-up" style="margin-bottom: 2rem; border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.03); overflow: hidden;">
+      <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1.5rem;">
+        <span class="tag tag-good">Full Pipeline E2E</span>
+        <h3 style="font-size: 1.15rem;">TikTok 실제 콘텐츠 분석 &rarr; 5장 캐러셀 &rarr; Figma</h3>
+      </div>
+
+      <!-- SOURCE INFO -->
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <span class="tag tag-cyan">Source: TikTok @kyleinmind</span>
+        <span class="tag tag-muted">조회 23.3K</span>
+        <span class="tag tag-muted">좋아요 420</span>
+        <span class="tag tag-yellow">AI 분석: "AI 아바타 수익 창출"</span>
+      </div>
+
+      <!-- GALLERY IMAGE ROW -->
+      <div class="gallery-scroll" style="margin-bottom: 1.5rem;">
+        <div class="gallery-item"><div class="gallery-badge">1. Hook</div><img src="assets/sns_card_news/card_1_hook.png" alt="Hook" loading="lazy"><div class="gallery-caption">이 예쁜 뷰티 모델, 사실 세상에 없는 사람이야</div></div>
+        <div class="gallery-item"><div class="gallery-badge">2. Problem</div><img src="assets/sns_card_news/card_2_problem.png" alt="Problem" loading="lazy"><div class="gallery-caption">카메라 앞이 두렵고 촬영비가 걱정이라고?</div></div>
+        <div class="gallery-item"><div class="gallery-badge">3. Concept</div><img src="assets/sns_card_news/card_3_concept.png" alt="Concept" loading="lazy"><div class="gallery-caption">AI 아바타</div></div>
+        <div class="gallery-item"><div class="gallery-badge">4. Explain</div><img src="assets/sns_card_news/card_4_explain.png" alt="Explain" loading="lazy"><div class="gallery-caption">클릭 몇 번에 인플루언서 탄생</div></div>
+        <div class="gallery-item"><div class="gallery-badge">5. Conclusion</div><img src="assets/sns_card_news/card_5_conclusion.png" alt="Conclusion" loading="lazy"><div class="gallery-caption">나만의 가상 부캐로 새로운 월급 만들어볼까?</div></div>
+      </div>
+
+      <!-- RETRY EVIDENCE -->
+      <div style="padding: 1rem 1.25rem; background: rgba(251,191,36,0.06); border: 1px solid rgba(251,191,36,0.15); border-radius: 10px; margin-bottom: 1.5rem;">
+        <div style="font-size: 0.75rem; font-weight: 600; color: var(--accent-yellow); margin-bottom: 0.5rem;">Retry 자동 복구 실증</div>
+        <p style="font-size: 0.8rem; color: var(--text-secondary);">
+          Hook 이미지: Gemini 거부 <span class="text-bad">"I can't generate..."</span> &rarr; <span class="text-good">자동 재시도 2/3 성공</span><br>
+          Explain 이미지: Gemini 거부 <span class="text-bad">"misleading text"</span> &rarr; <span class="text-good">자동 재시도 2/3 성공</span><br>
+          최종 결과: <span class="text-good" style="font-weight:600;">5/5 이미지 생성 완료</span> &mdash; Exponential backoff (2s/5s/10s) 실전 작동
+        </p>
+      </div>
+
+      <!-- FIGMA LINK -->
+      <div style="text-align: center; margin-bottom: 1rem;">
+        <a href="https://www.figma.com/design/inuxM4oZWXoyPY9kqqUpPl/MCP-Test?node-id=87-2" target="_blank" rel="noopener"
+           style="display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.75rem 2rem; background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.25); border-radius: 100px; color: var(--accent-good); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: all 0.3s;"
+           onmouseover="this.style.background='rgba(74,222,128,0.15)'" onmouseout="this.style.background='rgba(74,222,128,0.08)'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+          Figma에서 풀 파이프라인 결과 확인 &rarr;
+        </a>
+      </div>
+    </div>
+
+    <!-- 7-PHASE PIPELINE DIAGRAM -->
+    <div class="card fade-up" style="margin-bottom: 2rem;">
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted); margin-bottom: 1.5rem;">7-Phase Production Pipeline</div>
+      <div class="pipeline" style="flex-wrap: wrap; gap: 0.4rem;">
+        <div class="pipe-node merged">1. Search<br><span style="font-size:0.6rem;color:var(--text-muted);">Reddit/TikTok/IG</span></div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node merged">2. Select<br><span style="font-size:0.6rem;color:var(--text-muted);">Auto/Manual</span></div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node merged">3. Download<br><span style="font-size:0.6rem;color:var(--text-muted);">yt-dlp</span></div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node merged">4. Analyze<br><span style="font-size:0.6rem;color:var(--text-muted);">Gemini Video</span></div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node merged">5. Content<br><span style="font-size:0.6rem;color:var(--text-muted);">Gemini Pro</span></div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node merged">6. Image &times;5<br><span style="font-size:0.6rem;color:var(--text-muted);">Flash Image</span></div>
+        <span class="pipe-arrow">&rarr;</span>
+        <div class="pipe-node active" style="border-color:var(--accent-good);color:var(--accent-good);">7. HTML+Figma<br><span style="font-size:0.6rem;">capture.js</span></div>
+      </div>
+    </div>
+
+    <!-- 5-CRITERIA EVALUATION -->
+    <h3 class="fade-up" style="font-size: 1.1rem; margin-bottom: 1.5rem;">에이전트 구축 방법론 평가 &mdash; 5가지 기준</h3>
+
+    <div class="grid-2" style="margin-bottom: 2rem;">
+      <!-- CRITERION 1 -->
+      <div class="card fade-up stagger-1">
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+          <span style="font-size:1.5rem;">&#127919;</span>
+          <div>
+            <h4 style="font-size:0.95rem;">PoC 구조 (Backward Development)</h4>
+            <span class="tag tag-good">Pass</span>
+          </div>
+        </div>
+        <p style="font-size:0.82rem; color:var(--text-secondary);">
+          최종 산출물(Figma 프레임)부터 역방향 설계. HTML 템플릿(고정 1080&times;1350) &rarr; JSON 스키마(5-slide 구조 강제) &rarr; AI 생성(유연). 가장 어려운 기술(Figma capture.js)이 Phase 0에서 검증됨.
+        </p>
+      </div>
+
+      <!-- CRITERION 2 -->
+      <div class="card fade-up stagger-2">
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+          <span style="font-size:1.5rem;">&#129513;</span>
+          <div>
+            <h4 style="font-size:0.95rem;">모듈 단위 구성 (Modular Architecture)</h4>
+            <span class="tag tag-good">Pass</span>
+          </div>
+        </div>
+        <p style="font-size:0.82rem; color:var(--text-secondary);">
+          7개 phase가 각각 독립 실행 가능. <code style="font-size:0.78rem;background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">cli.py search</code> / <code style="font-size:0.78rem;background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">cli.py process</code> 분리. 이미지 1장 실패해도 나머지 4장으로 갤러리 생성 (Partial Success).
+        </p>
+      </div>
+
+      <!-- CRITERION 3 -->
+      <div class="card fade-up stagger-3">
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+          <span style="font-size:1.5rem;">&#128295;</span>
+          <div>
+            <h4 style="font-size:0.95rem;">적합한 도구 선정 (Right Tool for the Job)</h4>
+            <span class="tag tag-good">Pass</span>
+          </div>
+        </div>
+        <p style="font-size:0.82rem; color:var(--text-secondary);">
+          Gemini 3.1 Pro(텍스트 추론) vs Flash Image(이미지 생성) 적절한 모델 분업. ScrapeCreators(검색), yt-dlp(다운로드), Figma MCP(캡처) 각 단계에 최적 도구. 범용 LLM에 모든 것을 맡기지 않음.
+        </p>
+      </div>
+
+      <!-- CRITERION 4 -->
+      <div class="card fade-up stagger-4">
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+          <span style="font-size:1.5rem;">&#128680;</span>
+          <div>
+            <h4 style="font-size:0.95rem;">실패 가시성 (Make Failure Obvious)</h4>
+            <span class="tag tag-good">Pass</span>
+          </div>
+        </div>
+        <p style="font-size:0.82rem; color:var(--text-secondary);">
+          Exponential backoff (2s/5s/10s) + per-slide 에러 추적. JSON 파싱 실패 시 regex fallback. Silent failure 없이 즉시 로그 + manifest에 기록. 잘못된 HTML &rarr; Figma 캡처 즉시 실패로 빠른 피드백.
+        </p>
+      </div>
+
+      <!-- CRITERION 5 -->
+      <div class="card fade-up stagger-5" style="grid-column: 1 / -1;">
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+          <span style="font-size:1.5rem;">&#128271;</span>
+          <div>
+            <h4 style="font-size:0.95rem;">설정 단일 소스 (Single Source of Truth)</h4>
+            <span class="tag tag-good">Pass</span>
+          </div>
+        </div>
+        <div class="compare-grid">
+          <div>
+            <p style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:1rem;">
+              <code style="font-size:0.78rem;background:var(--bg-secondary);padding:2px 6px;border-radius:4px;">config.py</code> 하나에 모든 상수 집중. 디자인 토큰 불일치 가능성 원천 차단.
+            </p>
+          </div>
+          <div class="code-block" style="margin:0; font-size:0.78rem;">
+<span class="code-filename">sns_card_factory/config.py</span>
+<span class="code-var">GEMINI_TEXT_MODEL</span> = <span class="code-string">"gemini-3.1-pro-preview"</span>
+<span class="code-var">GEMINI_IMAGE_MODEL</span> = <span class="code-string">"gemini-3.1-flash-image-preview"</span>
+<span class="code-var">CARD_WIDTH</span> = <span class="code-string">1080</span>
+<span class="code-var">COLOR_ACCENT</span> = <span class="code-string">"#FFD03C"</span>
+<span class="code-var">MAX_RETRIES</span> = <span class="code-string">3</span>
+<span class="code-var">RETRY_DELAYS</span> = [<span class="code-string">2</span>, <span class="code-string">5</span>, <span class="code-string">10</span>]
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVOLUTION COMPARISON -->
+    <div class="card fade-up" style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.05rem; margin-bottom: 1.5rem;">3단계 진화: 문제 &rarr; PoC &rarr; 프로덕션</h3>
+      <table class="data-table">
+        <thead>
+          <tr><th>항목</th><th style="color:var(--accent-bad);">insta_auto</th><th style="color:var(--accent-yellow);">figma_mcp_test</th><th style="color:var(--accent-good);">sns_card_news</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>성격</strong></td>
+            <td class="text-bad">설계서 중심</td>
+            <td class="text-yellow">PoC / 프로토타입</td>
+            <td class="text-good">프로덕션 시스템</td>
+          </tr>
+          <tr>
+            <td><strong>파이프라인</strong></td>
+            <td>8 에이전트 (프롬프트)</td>
+            <td>4 Python 모듈</td>
+            <td>7 phase + FastAPI + Next.js</td>
+          </tr>
+          <tr>
+            <td><strong>최종 산출물</strong></td>
+            <td class="text-bad">텍스트 없는 배경 PNG</td>
+            <td class="text-good">Figma 프레임 (단일 카드)</td>
+            <td class="text-good">Figma 프레임 (5장 갤러리)</td>
+          </tr>
+          <tr>
+            <td><strong>입력 &rarr; 출력</strong></td>
+            <td>수동 프롬프트 8회</td>
+            <td>이미지 + 주제 &rarr; Figma</td>
+            <td>주제만 &rarr; 검색 &rarr; 분석 &rarr; Figma</td>
+          </tr>
+          <tr>
+            <td><strong>에러 핸들링</strong></td>
+            <td class="text-bad">없음</td>
+            <td class="text-yellow">기본 retry</td>
+            <td class="text-good">Exponential backoff + Partial Success + Manifest</td>
+          </tr>
+          <tr>
+            <td><strong>설정 관리</strong></td>
+            <td class="text-bad">3개 문서 불일치</td>
+            <td class="text-good">config.py 단일</td>
+            <td class="text-good">config.py + .env 3-location</td>
+          </tr>
+          <tr>
+            <td><strong>배포</strong></td>
+            <td>로컬만</td>
+            <td>로컬만</td>
+            <td class="text-good">Docker + Railway + Vercel</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<!-- ================================================================
+     SECTION: ROADMAP
+     ================================================================ -->
+<section id="roadmap">
+  <div class="container">
+    <div class="section-eyebrow fade-up">05 &mdash; Improvement Roadmap</div>
+    <h2 class="section-title fade-up stagger-1">개선 로드맵</h2>
+
+    <div class="roadmap">
+      <div class="roadmap-item priority card fade-up stagger-1" style="border-color: rgba(248,113,113,0.3);">
+        <div class="roadmap-phase">P0 &mdash; Critical</div>
+        <div class="roadmap-period">1주</div>
+        <h4 style="font-size: 1rem; margin-bottom: 0.75rem;">"라스트 마일" PoC + 에이전트 통합</h4>
+        <ul style="font-size: 0.82rem; color: var(--text-secondary); padding-left: 1.25rem;">
+          <li>배경 이미지 + 카피 &rarr; 최종 카드 1장 자동 합성 모듈</li>
+          <li>8 &rarr; 4 에이전트 통합</li>
+          <li>디자인 토큰 단일 소스 통일</li>
+          <li>에러 핸들링 + 환경 이식성 수정</li>
+        </ul>
+      </div>
+      <div class="roadmap-item card fade-up stagger-2">
+        <div class="roadmap-phase">P1</div>
+        <div class="roadmap-period">2&ndash;4주</div>
+        <h4 style="font-size: 1rem; margin-bottom: 0.75rem;">품질 인프라</h4>
+        <ul style="font-size: 0.82rem; color: var(--text-secondary); padding-left: 1.25rem;">
+          <li>Reflection 패턴 적용 (자기 검증)</li>
+          <li>Growth Analyst 피드백 루프 연결</li>
+          <li>progress.json 에피소드 네임스페이싱</li>
+        </ul>
+      </div>
+      <div class="roadmap-item card fade-up stagger-3">
+        <div class="roadmap-phase">P2</div>
+        <div class="roadmap-period">1&ndash;2개월</div>
+        <h4 style="font-size: 1rem; margin-bottom: 0.75rem;">자동화 고도화</h4>
+        <ul style="font-size: 0.82rem; color: var(--text-secondary); padding-left: 1.25rem;">
+          <li>품질 게이트 자동 검증</li>
+          <li>JSON 스키마 핸드오프</li>
+          <li>A/B 테스트 지원</li>
+        </ul>
+      </div>
+      <div class="roadmap-item card fade-up stagger-4">
+        <div class="roadmap-phase">P3</div>
+        <div class="roadmap-period">3개월+</div>
+        <h4 style="font-size: 1rem; margin-bottom: 0.75rem;">학습 루프 완성</h4>
+        <ul style="font-size: 0.82rem; color: var(--text-secondary); padding-left: 1.25rem;">
+          <li>인스타 메트릭 자동 수집</li>
+          <li>메트릭 &rarr; 에이전트 파라미터 조정</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<div style="text-align: center; padding: 3rem 2rem; color: var(--text-muted); font-size: 0.8rem; background: var(--bg-secondary);">
+  <p>Based on Anthropic "Building Effective Agents" (2024), Andrew Ng Agentic Design Patterns (2024), LangGraph Documentation</p>
+  <p style="margin-top: 0.5rem;">AI Transformation Consultant Review &bull; 2026.03.20</p>
+</div>
+
+<!-- BACK TO TOP -->
+<div class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+</div>
+
+<!-- ================================================================
+     JAVASCRIPT
+     ================================================================ -->
+<script>
+// Scroll progress
+const scrollProgress = document.getElementById('scrollProgress');
+window.addEventListener('scroll', () => {
+  const h = document.documentElement;
+  const pct = (h.scrollTop / (h.scrollHeight - h.clientHeight)) * 100;
+  scrollProgress.style.width = pct + '%';
+});
+
+// Navbar scroll
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 60);
+});
+
+// Back to top
+const btt = document.getElementById('backToTop');
+window.addEventListener('scroll', () => {
+  btt.style.display = window.scrollY > 600 ? 'flex' : 'none';
+});
+
+// Theme toggle
+const toggle = document.getElementById('themeToggle');
+toggle.addEventListener('click', () => {
+  document.documentElement.classList.toggle('theme-light');
+});
+
+// Intersection Observer for animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+document.querySelectorAll('.fade-up, .scale-down').forEach(el => observer.observe(el));
+
+// Animate score bars on scroll
+const scoreObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.score-bar-fill').forEach(bar => {
+        const w = bar.style.width;
+        bar.style.width = '0%';
+        requestAnimationFrame(() => { bar.style.width = w; });
+      });
+      scoreObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+
+document.querySelectorAll('.score-row').forEach(el => scoreObserver.observe(el.closest('.card')));
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) {
+      const top = target.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  });
+});
+</script>
+</body>
+</html>
